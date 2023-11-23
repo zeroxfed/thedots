@@ -1,0 +1,211 @@
+#!/bin/bash
+
+set -o vi
+
+###
+# SOURCES
+###
+
+# Source global definitions
+if [ -f /etc/bashrc ]
+then
+	source /etc/bashrc
+fi
+
+# Source the .bashrc.local if there is one
+if [ -f "$HOME/.bashrc.local" ]
+then
+	source "$HOME/.bashrc.local"
+fi
+
+# Source perlbrew configs
+if [ -d "$HOME/perl5/perlbrew/" ]
+then
+        source $HOME/perl5/perlbrew/etc/bashrc
+fi
+
+###
+# COLORS
+###
+
+# ANSI color sequences
+NORMAL="\033[0m"
+WHITE="\033[0;37m"
+MAGENTA="\033[0;35m"
+YELLOW="\033[0;33m"
+BRIGHTBLUE="\033[1;34m"
+BRIGHTWHITE="\033[1;37m"
+BRIGHTMAGENTA="\033[1;35m"
+BRIGHTGREEN="\033[1;32m"
+
+###
+# PROMPT
+###
+
+# Version information and display
+VERSION="1.7"
+VDATE="2/18/2021"
+case $- in
+    *i*)
+        echo -e "${BRIGHTBLUE}Peter's Login Scripts -- Version $VERSION ($VDATE)$NORMAL"
+        ;;
+esac
+
+unset ALL
+
+# Are we root?
+if [ $UID -eq 0 ] ; then
+    SYM='#'
+    ALL='-a'
+else
+    SYM='$'
+fi
+
+# Set up prompt
+PS1="\[$BRIGHTGREEN\][\t] -\$?- \[$YELLOW\][\u@\h \w]$SYM \[$NORMAL\]"
+
+###
+# OS DETECTION
+###
+
+# Detect OS
+case $(uname -s) in
+    Linux) os=linux ;;
+    *[bB][sS][dD]) os=bsd ;;
+    Darwin) os=mac ;;
+    *) os=unix ;;
+esac
+
+###
+# ALIASES
+###
+
+# Set up GNU ls
+if [ "$os" = "linux" ] ; then
+    if [ -f /etc/alpine-release ] ; then
+	    # this is an alpine box, don't alias
+	    :
+    else
+        alias ls="/bin/ls $ALL --color=auto --classify"
+    fi
+elif [ -x /usr/local/bin/ls ] ; then
+    alias ls="/usr/local/bin/ls $ALL --color=auto --classify"
+else
+    alias ls="/bin/ls $ALL -F"
+fi
+
+# Fix perldoc display
+if [ "$os" = "mac" ] ; then
+    alias perldoc="/usr/bin/env perldoc -n nroff"
+fi
+
+if [[ $os = "bsd" ]] ; then
+	alias ducks='doas du -cksx $(pwd) 2>/dev/null | sort -rn | head'
+else
+	alias ducks='sudo du -cksx $(pwd) 2>/dev/null | sort -rn | head'
+fi
+
+alias srcup="cd /usr/src; doas cvs -q up -Pd -A; cd -"
+alias portup="cd /usr/ports; doas cvs -q up -Pd -A; cd -"
+alias porchvpn="sudo openvpn --config ~/new-client.ovpn --auth-user-pass --auth-retry interact"
+alias oldporchvpn="sudo openvpn --config ~/client.ovpn --auth-user-pass --auth-retry interact"
+alias auth-fetcher='docker run -p4444:4444 --rm gcr.io/porch-gcp/auth-fetcher:latest --env'
+
+###
+# FUNCTIONS
+###
+
+# ps shortcut
+function is() {
+	count=0
+	
+	case $os in
+	linux|bsd)
+		iscommand="ps -lp"
+		;;
+	mac)
+		iscommand="ps -lp"
+		;;
+	*)
+		iscommand="ps -ax -p"
+		;;
+	esac
+
+	for ispid in $(pgrep "$@")
+	do
+		if [[ $(echo "$count % 15" | bc) == 0 ]]
+		then
+			eval "$iscommand" "$ispid"
+		else
+			eval "$iscommand" "$ispid" "| tail -n+2"
+		fi
+
+		count=$((count + 1))
+	done
+}
+
+function sprunge() {
+    ( echo "% $@"; eval "$@" ) | curl -F 'sprunge=<-' http://sprunge.us
+}
+
+if [ "$os" = "mac" ] || [ "$os" = "bsd" ]
+then
+    function myroute() {
+        if [ $# -gt 0 ]
+	then
+            /sbin/route "$@"
+        else
+            netstat -nr
+        fi
+    }
+
+    alias route=myroute
+fi
+
+ssh-add -q ~/.ssh/mailserver
+
+###
+# VARIABLES
+###
+
+EDITOR="vim"
+
+PATH="/opt/chefdk/embedded/bin:$PATH"
+PATH="$PATH:$HOME/.local/bin:$HOME/bin"
+PATH="$PATH:$HOME/.cargo/bin"
+PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+PATH="/opt/gcc-arm-none-eabi-10.3-2021.10/bin/:$PATH"
+
+PGOPTIONS="-c statement_timeout=0 -c maintenance_work_mem=2147483647"
+
+UNCRUSTIFY_CONFIG="$HOME/.uncrustify"
+USE_CCACHE=1
+CCACHE_DIR=$HOME/.ccache
+RUSTDOC=/usr/local/bin/rustdoc
+
+PKG_CONFIG_PATH=/usr/lib64/pkgconfig
+
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+if [ "$os" = "bsd" ]
+then
+    CVSROOT=anoncvs@anoncvs.ca.openbsd.org:/cvs
+    AUTOCONF_VERSION=2.69
+    AUTOMAKE_VERSION=1.11
+    export CVSROOT AUTOCONF_VERSION AUTOMAKE_VERSION
+fi
+
+WECHALLUSER="protoCall7"
+WECHALLTOKEN=""
+
+export PS1 EDITOR PATH PGOPTIONS LESS USE_CCACHE CCACHE_DIR \
+	UNCRUSTIFY_CONFIG PKG_CONFIG_PATH WECHALLUSER WECHALLTOKEN \
+	RUSTDOC
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/peter/google-cloud-sdk/path.bash.inc' ]; then . '/home/peter/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/peter/google-cloud-sdk/completion.bash.inc' ]; then . '/home/peter/google-cloud-sdk/completion.bash.inc'; fi
+

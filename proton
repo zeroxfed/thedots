@@ -1,0 +1,8 @@
+# Autocompletion settings
+set show-all-if-ambiguous on
+set visible-stats on
+
+# Edit mode settings
+set editing-mode vi
+set keymap vi-command
+

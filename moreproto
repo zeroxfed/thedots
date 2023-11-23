@@ -1,0 +1,36 @@
+# ANSI color sequences
+NORMAL="\033[0m"
+WHITE="\033[0;37m"
+MAGENTA="\033[0;35m"
+YELLOW="\033[0;33m"
+BRIGHTBLUE="\033[1;34m"
+BRIGHTWHITE="\033[1;37m"
+BRIGHTMAGENTA="\033[1;35m"
+BRIGHTGREEN="\033[1;32m"
+
+###
+# PROMPT
+###
+
+# Version information and display
+VERSION="1.7"
+VDATE="2/18/2021"
+case $- in
+    *i*)
+        echo -e "${BRIGHTBLUE}Peter's Login Scripts -- Version $VERSION ($VDATE)$NORMAL"
+        ;;
+esac
+
+unset ALL
+
+# Are we root?
+if [ $UID -eq 0 ] ; then
+    SYM='#'
+    ALL='-a'
+else
+    SYM='$'
+fi
+
+# Set up prompt
+PS1="\[$BRIGHTGREEN\][\t] -\$?- \[$YELLOW\][\u@\h \w]$SYM \[$NORMAL\]"
+

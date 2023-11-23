@@ -1,0 +1,12 @@
+# This is Git's per-user configuration file.
+[color]
+	ui = true
+[user]
+	name = Peter H. Ezetta
+	email = protocall7@gmail.com
+	signingkey = <key here>
+[push]
+	default = matching
+[init]
+	defaultBranch = master
+

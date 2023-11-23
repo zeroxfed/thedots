@@ -1,0 +1,21 @@
+" filetype settings
+syntax on 
+filetype plugin indent on 
+
+" general configuration
+set number
+set nowrap
+set background=dark
+set backspace=indent,eol,start
+set statusline=%F%m%r%h%w\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [ASCII=\%03.3b]\ [HEX=\%02.2B]\ [POS=%04l,%04v]\ [%p%%]\ [LEN=%L]
+set laststatus=2
+set scrolloff=1
+set incsearch
+set hlsearch
+
+" \/ to turn off hilighting.
+nnoremap <silent> <Leader>/ :nohlsearch<CR>
+
+" Allow saving of files as sudo when I forgot to start vim using sudo.
+cmap w!! w !sudo tee > /dev/null %
+
